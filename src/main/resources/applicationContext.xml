@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+	<!--
+		<context:property-placeholder location="classpath:/com/myapp/mongodb/config/mongo.properties"/>
+	 -->
+	<!-- mongodb连接池配置 -->
+	<mongo:mongo-client host="192.168.1.128" port="27022">
+		<mongo:client-options 
+		     write-concern="ACKNOWLEDGED"
+		      connections-per-host="100"
+		      threads-allowed-to-block-for-connection-multiplier="5"
+		      max-wait-time="120000"
+			  connect-timeout="10000"/> 
+	</mongo:mongo-client>
+	
+	<!-- mongodb数据库工厂配置 -->
+	<mongo:db-factory dbname="liqian" mongo-ref="mongo" />
+
+	<!-- MongoDB 3.4以前BigDecimal类型都是存储的字符串类型 -->
+	<!-- 配置作用：因spring-data-mongodb没有将BigDecimal类型的数据处理，导致存入的BigDecimal类型为字符串，这里处理-->
+  	<mongo:mapping-converter base-package="com.lq.mongodb.entity">
+	  	<mongo:custom-converters>
+	       <mongo:converter>
+			   <bean class="com.lq.mongodb.convert.BigDecimalToDecimal128Converter"/>
+	       </mongo:converter>
+	       <mongo:converter>
+	           <bean class="com.lq.mongodb.convert.Decimal128ToBigDecimalConverter"/>
+		   </mongo:converter>
+	  	</mongo:custom-converters>
+	</mongo:mapping-converter>
+
+    <!-- mongodb模板配置 -->
+	<bean id="anotherMongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+		<constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+ 		<constructor-arg name="mongoConverter" ref="mappingConverter"/>
+		<property name="writeResultChecking" value="EXCEPTION"></property>
+	</bean>
+
+
+</beans>
