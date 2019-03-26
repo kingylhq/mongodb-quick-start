@@ -109,19 +109,25 @@ public class MongodbQuickStartSpringPOJOTest {
     @Test
     public void updateTest() {
         // 1、根据username = "关羽" 修改
-        Criteria where = Criteria.where("username").is("关羽");
+        Criteria where = Criteria.where("username").is("李飞龙");
         Query query = Query.query(where);
-        Update update = Update.update("age", 500);
-        // 执行修改操作
-        WriteResult writeResult = tempelate.updateMulti(query, update, User.class);
+
+        // 修改数据值 方法一
+//        Update update = Update.update("age", 500);
+        // 修改数据值 方法二
+        Update update = new Update();
+        update.set("country", "泰国").set("age", 32);
+
+        // 执行修改操作 tempelate.updateMulti(query, update, User.class);
+        WriteResult writeResult = tempelate.updateFirst(query, update, User.class);
         System.out.println("操作记录数： "+writeResult.getN());
 
         // 2、根据某人喜欢的相关城市，给他对应的喜爱的电影多添加几部
-        Criteria where1 = Criteria.where("favorites.cites").is("南充");
-        Query query1 = Query.query(where1);
-        Update update1 = new Update().addToSet("favorites.movies").each("成人IT视频", "成人MV");
-        WriteResult writeResult1 = tempelate.updateMulti(query1, update1, User.class);
-        System.out.println("数据："+writeResult1.getN());
+//        Criteria where1 = Criteria.where("favorites.cites").is("南充");
+//        Query query1 = Query.query(where1);
+//        Update update1 = new Update().addToSet("favorites.movies").each("成人IT视频", "成人MV");
+//        WriteResult writeResult1 = tempelate.updateMulti(query1, update1, User.class);
+//        System.out.println("数据："+writeResult1.getN());
     }
 
     @Test
