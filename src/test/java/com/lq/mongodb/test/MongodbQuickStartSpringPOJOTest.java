@@ -4,8 +4,10 @@ import com.lq.mongodb.entity.Address;
 import com.lq.mongodb.entity.Favorites;
 import com.lq.mongodb.entity.User;
 import com.mongodb.WriteResult;
+import com.mongodb.util.JSON;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,6 +18,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.test.util.JsonExpectationsHelper;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -150,13 +153,20 @@ public class MongodbQuickStartSpringPOJOTest {
             Criteria criteria2 = Criteria.where("createTime").lte(sdf.parse("2019-03-26 23:59:59"));
             // 组装分页查询条件
             Query query = Query.query(new Criteria().andOperator(criteria0, criteria1, criteria2));
-            query.skip((pageNo - 1) * pageSize).limit(pageSize);
             long count = tempelate.count(query, User.class);
+
+            // 根据日期进行倒叙，  and() 里面为多条件查询，可以不要
+            Sort sort = new Sort(Sort.Direction.DESC, "createTime").and(new Sort(Sort.Direction.ASC, "username"));
+            query.with(sort);
+
+            // 分页参数
+            query.skip((pageNo - 1) * pageSize).limit(pageSize);
             System.out.println("总数 ： "+count);
 
             List<User> users = tempelate.find(query, User.class);
             if (!CollectionUtils.isEmpty(users)) {
                 System.out.println("分页查询大小："+users.size());
+                System.out.println("结果集："+ users.toString());
             }
 
         } catch (ParseException e) {
